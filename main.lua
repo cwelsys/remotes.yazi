@@ -57,4 +57,30 @@ function M.candidates(hosts, status)
 	return cands
 end
 
+function M.read_hosts()
+	local base = os.getenv("YAZI_CONFIG_HOME") or (os.getenv("HOME") .. "/.config/yazi")
+	local f = io.open(base .. "/vfs.toml", "r")
+	if not f then
+		return {}
+	end
+	local text = f:read("*a")
+	f:close()
+	return M.parse_vfs(text)
+end
+
+function M:entry()
+	local hosts = M.read_hosts()
+	if #hosts == 0 then
+		ya.notify { title = "Remotes", content = "No services found in vfs.toml", level = "warn", timeout = 3 }
+		return
+	end
+
+	local idx = ya.which { cands = M.candidates(hosts) }
+	if not idx then
+		return
+	end
+
+	ya.emit("tab_create", { "sftp://" .. hosts[idx].name })
+end
+
 return M
