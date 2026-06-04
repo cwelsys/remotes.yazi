@@ -1,3 +1,5 @@
+ya = { sync = function(f) return f end }
+
 local here = arg[0]:match("^(.*/)") or "./"
 local M = dofile(here .. "main.lua")
 
