@@ -57,6 +57,36 @@ function M.candidates(hosts, status)
 	return cands
 end
 
+function M.status_map(decoded)
+	local map = {}
+	if type(decoded) ~= "table" then
+		return map
+	end
+	for _, peer in pairs(decoded.Peer or {}) do
+		if type(peer) == "table" and peer.HostName then
+			map[peer.HostName] = { online = peer.Online == true, os = peer.OS }
+		end
+	end
+	return map
+end
+
+function M.build_items(hosts, status)
+	status = status or {}
+	local used = { q = true, j = true, k = true, l = true }
+	local items = {}
+	for _, h in ipairs(hosts) do
+		local st = status[h.name]
+		items[#items + 1] = {
+			name = h.name,
+			key = M.pick_key(h.name, used),
+			online = st and st.online or false,
+			os = (st and st.os) or h.os,
+			known = st ~= nil,
+		}
+	end
+	return items
+end
+
 function M.read_hosts()
 	local base = os.getenv("YAZI_CONFIG_HOME") or (os.getenv("HOME") .. "/.config/yazi")
 	local f = io.open(base .. "/vfs.toml", "r")

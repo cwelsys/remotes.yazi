@@ -39,11 +39,29 @@ eq(M.pick_key("mba", used), "m", "pick_key first letter")
 eq(M.pick_key("pbox", used), "p", "pick_key second host")
 eq(M.pick_key("main", used), "a", "pick_key collision -> next free letter")
 
-local cands = M.candidates({ { name = "mba" }, { name = "pbox" } })
-eq(#cands, 2, "candidates count")
-eq(cands[1].on, "m", "candidates key1")
-eq(cands[1].desc, "mba", "candidates desc1")
-eq(cands[2].on, "p", "candidates key2")
+local decoded = {
+	Peer = {
+		["k1"] = { HostName = "bmac", Online = true, OS = "macOS" },
+		["k2"] = { HostName = "pbox", Online = true, OS = "linux" },
+		["k3"] = { HostName = "mba", Online = false, OS = "macOS" },
+	},
+}
+local sm = M.status_map(decoded)
+eq(sm.bmac.online, true, "status_map bmac online")
+eq(sm.bmac.os, "macOS", "status_map bmac os")
+eq(sm.mba.online, false, "status_map mba offline")
+eq(M.status_map(nil).x, nil, "status_map nil-safe")
+
+local items = M.build_items({ { name = "mba" }, { name = "pbox" } }, sm)
+eq(#items, 2, "build_items count")
+eq(items[1].name, "mba", "build_items name")
+eq(items[1].key, "m", "build_items quick-key")
+eq(items[1].online, false, "build_items mba offline")
+eq(items[1].os, "macOS", "build_items os from status")
+eq(items[1].known, true, "build_items known peer")
+local kless = M.build_items({ { name = "jelly" } }, {})
+eq(kless[1].key, "e", "build_items reserves nav keys")
+eq(kless[1].known, false, "build_items unknown when no status")
 
 if fails == 0 then
 	print("ALL TESTS PASS")
