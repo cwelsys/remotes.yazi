@@ -55,18 +55,23 @@ end
 function M.build_items(hosts, status)
 	status = status or {}
 	local used = { q = true, j = true, k = true, l = true }
-	local items = {}
+	local online, rest = {}, {}
 	for _, h in ipairs(hosts) do
 		local st = status[h.name]
-		items[#items + 1] = {
+		local item = {
 			name = h.name,
 			key = M.pick_key(h.name, used),
 			online = st and st.online or false,
 			os = (st and st.os) or h.os,
 			known = st ~= nil,
 		}
+		local bucket = (item.known and item.online) and online or rest
+		bucket[#bucket + 1] = item
 	end
-	return items
+	for _, item in ipairs(rest) do
+		online[#online + 1] = item
+	end
+	return online
 end
 
 function M.read_hosts()
