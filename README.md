@@ -28,4 +28,12 @@ ya pkg add cwelsys/remotes
 on = "R"
 run = "plugin remotes"
 desc = "Pick a remote host"
+
+
+| Key | Action |
+|-----|--------|
+| `j` / `↓` | Move down |
+| `k` / `↑` | Move up |
+| `⏎` / `l` / `→` | Connect |
+| `q` / `⎋` | Close |
 ```
