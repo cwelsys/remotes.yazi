@@ -4,8 +4,7 @@ function M.parse_vfs(text)
 	local hosts, cur = {}, nil
 	for line in (text .. "\n"):gmatch("(.-)\n") do
 		local s = line:match("^%s*(.-)%s*$")
-		if s:sub(1, 1) == "#" then
-		else
+		if s:sub(1, 1) ~= "#" then
 			local name = s:match("^%[services%.([%w%-]+)%]$")
 			if name then
 				cur = { name = name }
