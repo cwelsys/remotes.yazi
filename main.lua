@@ -5,9 +5,11 @@ function M.parse_vfs(text)
 	for line in (text .. "\n"):gmatch("(.-)\n") do
 		local s = line:match("^%s*(.-)%s*$")
 		if s:sub(1, 1) ~= "#" then
-			local name = s:match("^%[services%.([%w%-]+)%]$")
+			-- Sections are `[scheme.domain]`, e.g. `[sftp.my-server]`. Yazi <26.x used
+			-- `[services.name]` with a `type = "..."` key, still accepted below.
+			local scheme, name = s:match("^%[([%w%-]+)%.([%w%-]+)%]$")
 			if name then
-				cur = { name = name }
+				cur = { name = name, scheme = scheme }
 				hosts[#hosts + 1] = cur
 			elseif cur then
 				local k, v = s:match("^([%w_]+)%s*=%s*(.+)$")
@@ -15,6 +17,11 @@ function M.parse_vfs(text)
 					cur[k] = (v:gsub('^"(.*)"$', "%1"))
 				end
 			end
+		end
+	end
+	for _, h in ipairs(hosts) do
+		if h.scheme == "services" then
+			h.scheme = h.type or "sftp"
 		end
 	end
 	return hosts
@@ -56,9 +63,10 @@ function M.build_items(hosts, status)
 	local used = { q = true, j = true, k = true, l = true }
 	local online, rest = {}, {}
 	for _, h in ipairs(hosts) do
-		local st = status[h.name]
+		local st = status[h.name] or (h.host and status[h.host])
 		local item = {
 			name = h.name,
+			scheme = h.scheme or "sftp",
 			key = M.pick_key(h.name, used),
 			online = st and st.online or false,
 			os = (st and st.os) or h.os,
@@ -187,7 +195,7 @@ function M:touch() end
 function M:entry()
 	local hosts = M.read_hosts()
 	if #hosts == 0 then
-		ya.notify { title = "Remotes", content = "No services found in vfs.toml", level = "warn", timeout = 3 }
+		ya.notify { title = "Remotes", content = "No hosts found in vfs.toml", level = "warn", timeout = 3 }
 		return
 	end
 
@@ -232,7 +240,7 @@ function M:entry()
 
 	toggle_ui()
 	if chosen then
-		ya.emit("tab_create", { "sftp://" .. chosen.name })
+		ya.emit("tab_create", { chosen.scheme .. "://" .. chosen.name })
 	end
 end
 

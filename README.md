@@ -8,12 +8,13 @@ A [Yazi](https://github.com/sxyazi/yazi) plugin that lists your SFTP hosts in an
 - [vfs.toml](https://yazi-rs.github.io/docs/configuration/vfs/) with at least one host
 
 ```toml
-[services.foo]
-type = "sftp"
+[sftp.foo]
 host = "foo"
 user = "bar"
 port = 22
 ```
+
+The older `[services.foo]` + `type = "sftp"` layout (Yazi < 26) is still read.
 
 ## Installation
 
